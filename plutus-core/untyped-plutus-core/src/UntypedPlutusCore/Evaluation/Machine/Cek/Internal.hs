@@ -474,7 +474,17 @@ spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
 emitCek :: GivenCekEmitter s => String -> CekM uni fun s ()
 emitCek str =
     let mayLogsRef = ?cekEmitter
-        withTime = str ++ (show $ unsafePerformIO getCurrentTime)
+    in case mayLogsRef of
+        Nothing      -> pure ()
+        Just logsRef -> CekCarryingM $ modifySTRef logsRef (`DList.snoc` str)
+
+emitCekWithTime :: GivenCekEmitter s => String -> CekM uni fun s ()
+emitCekWithTime str =
+    let mayLogsRef = ?cekEmitter
+        withTime =
+            "[" ++
+            (show $ unsafePerformIO getCurrentTime) ++
+            "]" ++ str
     in case mayLogsRef of
         Nothing      -> pure ()
         Just logsRef ->
