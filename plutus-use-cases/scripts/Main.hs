@@ -144,7 +144,7 @@ writeScriptsTo ScriptsConfig{scMode, scPath, scNetworkId} prefix trace emulatorC
             S.fst'
             $ run
             $ foldEmulatorStreamM (L.generalize theFold)
-            $ Trace.runEmulatorStream emulatorCfg def trace
+            $ Trace.runEmulatorStream emulatorCfg trace
 
     createDirectoryIfMissing True scPath
     when (Scripts <= scMode) $

@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE NamedFieldPuns     #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 
 -- The '-fno-worker-wrapper' GHC option prevents the error:
@@ -22,8 +23,11 @@ module Ledger.TimeSlot(
 , currentSlot
 ) where
 
+import           Codec.Serialise           (Serialise)
+import           Control.DeepSeq           (NFData)
 import           Data.Aeson                (FromJSON, ToJSON)
 import           Data.Default              (Default (def))
+import           Data.Text.Prettyprint.Doc (Pretty (pretty), (<+>))
 import qualified Data.Time.Clock           as Time
 import qualified Data.Time.Clock.POSIX     as Time
 import           GHC.Generics              (Generic)
@@ -42,13 +46,22 @@ data SlotConfig =
         { scSlotLength   :: Integer -- ^ Length (number of milliseconds) of one slot
         , scZeroSlotTime :: POSIXTime -- ^ Beginning of the first slot (in milliseconds)
         }
-    deriving (Show, Eq, Generic, ToJSON, FromJSON)
+    deriving (Show, Eq, Generic, ToJSON, FromJSON, Serialise, NFData)
 
 makeLift ''SlotConfig
 
 instance Default SlotConfig where
   {-# INLINABLE def #-}
   def = SlotConfig{ scSlotLength = 1000, scZeroSlotTime = POSIXTime beginningOfTime }
+
+instance Pretty SlotConfig where
+    pretty SlotConfig {scSlotLength, scZeroSlotTime} =
+            "Slot 0 starts at"
+        <+> pretty scZeroSlotTime
+        <+> "and one slot has length of"
+        <+> pretty scSlotLength
+        <+> "ms"
+
 
 {-# INLINABLE beginningOfTime #-}
 -- | 'beginningOfTime' corresponds to the Shelley launch date
